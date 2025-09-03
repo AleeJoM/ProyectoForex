@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "ProyectoForex.Api": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "applicationUrl": "http://localhost:5057",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "TV_SHARED_SECRET": "cambia-esto"
+      }
+    }
+  }
+}

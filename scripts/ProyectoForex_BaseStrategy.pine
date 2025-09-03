@@ -1,0 +1,23 @@
+//@version=6
+strategy("ProyectoForex Base Strategy", overlay=true, initial_capital=100000, commission_type=strategy.commission.percent, commission_value=0.01)
+
+len  = input.int(20, "MA Length")
+src  = input.source(close, "Source")
+useOncePerBarClose = input.bool(true, "Alert once per bar close")
+
+ma   = ta.sma(src, len)
+bull = ta.crossover(close, ma)
+bear = ta.crossunder(close, ma)
+
+if bull
+    strategy.entry("L", strategy.long)
+if bear
+    strategy.close("L")
+
+plot(ma, "MA")
+
+action = bull ? "buy" : bear ? "close" : "hold"
+json   = str.format('{{"secret":"{0}","ticker":"{1}","exchange":"{2}","price":{3},"volume":{4},"action":"{5}","ts":{6}}}',
+     "cambia-esto", syminfo.ticker, syminfo.exchange, close, volume, action, timenow)
+
+alert(json, useOncePerBarClose ? alert.freq_once_per_bar_close : alert.freq_all)
