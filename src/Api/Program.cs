@@ -19,7 +19,9 @@ builder.Host.UseSerilog((ctx, lc) => lc.ReadFrom.Configuration(ctx.Configuration
 
 builder.Services.AddDbContext<ForexDbContext>(opt =>
     opt.UseNpgsql(builder.Configuration.GetConnectionString("Postgres") ?? "Host=localhost;Port=5432;Database=forexdb;Username=forex;Password=forex"));
-builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect("localhost:6379"));
+var redisConn = builder.Configuration["Redis:Connection"] ?? builder.Configuration["Redis__Connection"];
+builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redisConn ?? "localhost:6379"));
+
 
 builder.Services.AddScoped<ISignalRepository, SignalRepository>();
 builder.Services.AddSingleton<IAlertDeduper, AlertDeduper>();
@@ -68,5 +70,11 @@ app.MapPost("/webhooks/tradingview", async (HttpRequest req, IConfiguration cfg,
     return Results.Ok(new { received = true, id });
 })
 .WithName("TradingViewWebhook");
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ForexDbContext>();
+    db.Database.Migrate();
+}
 
 app.Run();
